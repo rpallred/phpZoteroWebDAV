@@ -88,5 +88,6 @@ function render_field_value( $field_name, $field ) {
         </div>
     </div>
 </div>
+<?php include 'inc/footer.php'; ?>
 </body>
 </html>

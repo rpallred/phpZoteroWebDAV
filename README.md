@@ -30,6 +30,7 @@ phpZoteroWebDAV was originally written by Christian Holz and is licensed under t
 Significant updates have been made by:
 * fishburn (Real name unknown - https://github.com/fishburn)
 * David Dean
+* Robert Allred ([Allred Consulting](https://allred.consulting)), with [Claude](https://claude.com/claude-code) — the PHP 8.1+ / Zotero API v3 revival and library browser redesign in this fork
 
 phpZoteroWebDAV includes the following third party components:
 - The WebDAV server PEAR module written by Hartmut Holzgraefe as well as the PEAR base module, both licensed under the PHP license (http://www.php.net/license/3_01.txt)

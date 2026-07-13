@@ -7,8 +7,8 @@
     --border:    #e2e5ea;
     --text:      #1f2430;
     --text-dim:  #6b7280;
-    --accent:    #3457d5;
-    --accent-bg: #eef1fd;
+    --accent:    #2c5f8a;
+    --accent-bg: #eaf1f6;
     --radius:    8px;
 }
 
@@ -84,7 +84,7 @@ a:hover { text-decoration: underline; }
 
 .search-form button:hover,
 .btn:hover {
-    background: #2946b0;
+    background: #204a6d;
     text-decoration: none;
 }
 
@@ -335,4 +335,23 @@ dl.fields dd:empty::after {
 
 .attachment-card .link {
     margin-top: 8px;
+}
+
+/* -- Footer -- */
+.app-footer {
+    max-width: 1160px;
+    margin: 32px auto 24px;
+    padding: 0 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.app-footer a {
+    color: var(--text-dim);
+    text-decoration: underline;
+}
+
+.app-footer a:hover {
+    color: var(--accent);
 }

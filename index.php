@@ -211,5 +211,6 @@ $carry_params     = $param_ipp . $param_sort . $param_sortorder . $param_collect
         <?php endif; ?>
     </div>
 </div>
+<?php include 'inc/footer.php'; ?>
 </body>
 </html>
