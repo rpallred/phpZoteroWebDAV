@@ -344,7 +344,7 @@
                     $name = htmlspecialchars($filename);
                     printf($format, 
                            number_format(filesize($fullpath)),
-                           strftime("%Y-%m-%d %H:%M:%S", filemtime($fullpath)), 
+                           date("Y-m-d H:i:s", filemtime($fullpath)),
                            "<a href='$this->base_uri$path$name'>$name</a>");
                 }
             }
@@ -497,7 +497,7 @@
             if (!$new) {
                 if ($options["overwrite"]) {
                     $stat = $this->DELETE(array("path" => $options["dest"]));
-                    if (($stat{0} != "2") && (substr($stat, 0, 3) != "404")) {
+                    if (($stat[0] != "2") && (substr($stat, 0, 3) != "404")) {
                         return $stat; 
                     }
                 } else {                

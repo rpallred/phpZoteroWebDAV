@@ -18,43 +18,47 @@ function purge_cache($path, $cacheage=0) {
 
 // unzips a zipfile to a path and decodes filenames encoded in base64 (if they have a %ZB64 suffix)
 // can be set to not execute writing of unzipped files ($writefiles=false)
-// returns filename of the unzipped file (if only one file in zip file) otherwise the directory path that holds unzipped files 
+// returns filename of the unzipped file (if only one file in zip file) otherwise the directory path that holds unzipped files
 function unzip($zipfile,$outpath,$depreciated_option=0,$writefiles=true) {
 
-    $zip=zip_open($zipfile);
-    if(!$zip) {return("Unable to proccess zipfile \"" . $zipfile . "\"");}
+    $zip = new ZipArchive();
+    if ($zip->open($zipfile) !== true) {
+        return("Unable to proccess zipfile \"" . $zipfile . "\"");
+    }
 
     $e='';
     $i=0;
-    while($zip_entry=zip_read($zip)) {
-       $zdir=dirname(zip_entry_name($zip_entry));
-       $zname=zip_entry_name($zip_entry);
+    $zname='';
+    for ($idx = 0; $idx < $zip->numFiles; $idx++) {
+       $entryName = $zip->getNameIndex($idx);
+       // subdirectory path is derived from the *undecoded* entry name, same order the
+       // legacy zip_entry_name()-based code used, before any %ZB64 filename decoding below
+       $zdir  = dirname($entryName);
+       $zname = $entryName;
 
-       if(!zip_entry_open($zip,$zip_entry,"r")) {$e.="Unable to proccess file \"".$zname."\"";continue;}
        if(!is_dir($outpath."/".$zdir)) mkdirr($outpath."/".$zdir,0777);
 
-       #print "{$zdir} | {$zname} \n";
-
-       $zip_fs=zip_entry_filesize($zip_entry);
+       $stat = $zip->statIndex($idx);
+       $zip_fs = ($stat !== false) ? $stat['size'] : 0;
        if(empty($zip_fs)) continue;
 
-       $zz=zip_entry_read($zip_entry,$zip_fs);
-       
+       $zz = $zip->getFromIndex($idx);
+       if ($zz === false) {$e.="Unable to proccess file \"".$zname."\"";continue;}
+
        if (substr($zname,-5)=="%ZB64") {
           $zname=substr($zname,0,strpos($zname,"%ZB64"));
           $zname=base64_decode($zname);
        }
-       
+
        if($writefiles) {
           $z=fopen($outpath . "/" . $zname,"w");
           fwrite($z,$zz);
           fclose($z);
         }
-       zip_entry_close($zip_entry);
-       
+
        $i = $i +1;
-    } 
-    zip_close($zip);
+    }
+    $zip->close();
 
     if (strlen($e)>0) {
         echo($e);
@@ -66,7 +70,7 @@ function unzip($zipfile,$outpath,$depreciated_option=0,$writefiles=true) {
             return($outpath . "/" . $zname);
         }
     }
-} 
+}
 
 // recursively remove directory (ie. directory and any file and subdirectory contents)
 function rmdirr($dir) { 

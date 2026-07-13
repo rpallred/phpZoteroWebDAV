@@ -1,13 +1,16 @@
 <?php
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+
 require_once 'settings.php';
 require_once 'inc/include.php';
-require_once 'inc/libZotero.php';
+require_once 'inc/ZoteroClient.php';
 include_once 'inc/header.php';  // HTML header including css file
 
 try {
 	$zotero = new Zotero_Library( 'user', $user_ID, $user_name, $API_key );
 } catch( Exception $e ) {
-	die( 'Error activating libZotero: ' . $e->getMessage() );
+	die( 'Error activating Zotero client: ' . $e->getMessage() );
 }
 
 if( isset( $apc_cache_ttl ) && $apc_cache_ttl )
@@ -19,7 +22,7 @@ $sortorder = isset($_REQUEST['sortorder']) ? $_REQUEST['sortorder'] : $def_sorto
 $page = isset($_REQUEST['page']) ? (int)$_REQUEST['page'] : 1;
 $collectionKey = isset( $_REQUEST['collection'] ) ? $_REQUEST['collection'] : false;
 
-$webdav_url=( isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST']  . str_replace('?'.$_SERVER['QUERY_STRING'],'',$_SERVER['REQUEST_URI']) . "webdav_server.php/zotero/";
+$webdav_url=( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . "/webdav_server.php/zotero/";
 
 ?>
 <h3>
@@ -112,9 +115,9 @@ $totalitems = $zotero->getLastFeed()->totalResults;
     <tr>
         <th>Attachments</th>
         <th><a href="?page=1&sort=dateAdded">Added</a></th>
-        <th><a href="?page=1&sort=creator&sortorder=<?php echo $orders[!(boolean) abs(strcmp($sort,"creator"))] ?>">Creator</a></th>
-        <th><a href="?page=1&sort=date&sortorder=<?php echo $orders[!(boolean) abs(strcmp($sort,"date"))] ?>">Date</a></th>
-        <th><a href="?page=1&sort=title&sortorder=<?php echo $orders[!(boolean) abs(strcmp($sort,"title"))] ?>">Title</a></th>
+        <th><a href="?page=1&sort=creator&sortorder=<?php echo $orders[!(bool) abs(strcmp($sort,"creator"))] ?>">Creator</a></th>
+        <th><a href="?page=1&sort=date&sortorder=<?php echo $orders[!(bool) abs(strcmp($sort,"date"))] ?>">Date</a></th>
+        <th><a href="?page=1&sort=title&sortorder=<?php echo $orders[!(bool) abs(strcmp($sort,"title"))] ?>">Title</a></th>
     </tr>
     </thead>
     <tbody>

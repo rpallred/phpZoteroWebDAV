@@ -1,5 +1,10 @@
 <?php
 
+// Suppress warnings/deprecation notices from leaking into the WebDAV response body
+// (would otherwise corrupt the XML/data the Zotero client is trying to parse).
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+
 require 'settings.php';
 
 chdir (dirname(__FILE__) . "/inc");

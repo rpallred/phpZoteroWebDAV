@@ -1,8 +1,20 @@
 <?php
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+
 require_once 'settings.php';
 require_once 'inc/include.php';
 $itemkey  = $_REQUEST['itemkey'];
 $mimeType = $_REQUEST['mime'];
+
+if (!preg_match('/^[A-Z0-9]{8}$/', $itemkey)) {
+    http_response_code(400);
+    die('Invalid item key.');
+}
+if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_.+]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_.+]*$/', $mimeType)) {
+    http_response_code(400);
+    die('Invalid mime type.');
+}
 
 //purge old files from the cache
 purge_cache( get_real_path( $cache_dir ), $cache_age);

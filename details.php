@@ -1,7 +1,10 @@
 <?php
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+
 require_once 'settings.php';
 require_once 'inc/include.php';
-require_once 'inc/libZotero.php';
+require_once 'inc/ZoteroClient.php';
 include_once 'inc/header.php';  // HTML header including css file
 $zotero = new Zotero_Library( 'user', $user_ID, $user_name, $API_key );
 $itemkey = $_REQUEST['itemkey'];
@@ -29,10 +32,10 @@ $item = $zotero->fetchItem( $itemkey );
                 $field_formatted = un_camel( $field );
                 break;
             case 'tags':
-                $field_formatted = implode( ', ', array_map( create_function( '$val', 'return $val["tag"];' ), $field ) );
+                $field_formatted = implode( ', ', array_map( fn($val) => $val["tag"], $field ) );
                 break;
             case 'creators':
-                $field_formatted = implode('<br />', array_map( create_function( '$val', 'return un_camel($val["creatorType"]) . ": " . $val["firstName"] . " " . $val["lastName"];' ), $field ) );
+                $field_formatted = implode('<br />', array_map( fn($val) => un_camel($val["creatorType"]) . ": " . $val["firstName"] . " " . $val["lastName"], $field ) );
                 break;
             default:
                 $field_formatted = $field;
@@ -65,7 +68,7 @@ if( $child_items ) {
         // Apply any field-specific formatting
         switch( $field_name ) {
             case 'tags':
-                $field_formatted = implode( ', ', array_map( create_function( '$val', 'return $val["tag"];' ), $field ) );
+                $field_formatted = implode( ', ', array_map( fn($val) => $val["tag"], $field ) );
                 break;
             default:
                 $field_formatted = $field;

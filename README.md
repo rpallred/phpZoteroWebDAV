@@ -13,11 +13,15 @@ This means your attachment data is never stored on computers (clients or servers
 - View your synced attachments (incl. web snapshots) from any web browser without having to use zotero.org's storage server
 - Enjoy complete security with support for HTTPS connections
 
+This fork has been updated to run on PHP 8.1+ (the original code, last
+updated ~2013-2018, no longer ran at all on modern PHP) and to speak
+Zotero's current JSON (v3) API instead of the XML API Zotero retired years
+ago.
+
 Installation and Configuration Instructions
 -------------------------------------------
-http://blog.holz.ca/2011/11/phpzoterowebdav-installation/
-http://blog.holz.ca/2011/10/proudly-presenting/
-
+See [DEPLOY.md](DEPLOY.md) for setup instructions, including SFTP and
+control-panel File Manager upload steps.
 
 License
 -------
@@ -29,6 +33,10 @@ Significant updates have been made by:
 
 phpZoteroWebDAV includes the following third party components:
 - The WebDAV server PEAR module written by Hartmut Holzgraefe as well as the PEAR base module, both licensed under the PHP license (http://www.php.net/license/3_01.txt)
-- The libZotero class for zotero API connection, released under an unknown open source license (https://github.com/fcheslack/libZotero)
 - The zotero.org css style sheet, apparently released under the AGPLv3 license (http://www.gnu.org/licenses/agpl.html))
+
+Note: the original `libZotero` API client (by https://github.com/fcheslack/libZotero)
+has been replaced with a small custom client (`inc/ZoteroClient.php`) that
+speaks Zotero's current JSON API — the old client only understood the XML
+API Zotero has since discontinued.
 
