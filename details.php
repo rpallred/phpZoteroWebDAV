@@ -5,7 +5,9 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
 require_once 'settings.php';
 require_once 'inc/include.php';
 require_once 'inc/ZoteroClient.php';
-include_once 'inc/header.php';  // HTML header including css file
+include_once 'inc/header.php';
+include 'inc/topbar.php';
+
 $zotero = new Zotero_Library( 'user', $user_ID, $user_name, $API_key );
 $itemkey = $_REQUEST['itemkey'];
 
@@ -18,84 +20,73 @@ purge_cache( get_real_path( $cache_dir ), $cache_age);
 // reading item details from API
 $item = $zotero->fetchItem( $itemkey );
 
-// displaying content of main item
-?>
-<hr />
-<h2>Item Details</h2><hr />
-<table>
-    <?php 
-    foreach( $item->apiObject as $field_name => $field ) : 
-        
-        // Apply any field-specific formatting
-        switch( $field_name ) {
-            case 'itemType':
-                $field_formatted = un_camel( $field );
-                break;
-            case 'tags':
-                $field_formatted = implode( ', ', array_map( fn($val) => $val["tag"], $field ) );
-                break;
-            case 'creators':
-                $field_formatted = implode('<br />', array_map( fn($val) => un_camel($val["creatorType"]) . ": " . $val["firstName"] . " " . $val["lastName"], $field ) );
-                break;
-            default:
-                $field_formatted = $field;
-        }
+// Render a single item-detail field value into safe HTML.
+function render_field_value( $field_name, $field ) {
+    switch ( $field_name ) {
+        case 'itemType':
+            return htmlspecialchars( un_camel( $field ) );
 
-    ?>
-    <tr>
-        <th scope="row"><?php echo un_camel($field_name) ?></th>
-        <td><?php echo $field_formatted ?></td>
-    </tr>
-    <?php endforeach; ?>
-</table>
-<hr />
-<h2>Attachments (<?php echo $item->numChildren ?>)</h2>
-<hr />
-<?php
-// getting child items from API, parsing data, displaying results
-$child_items = $zotero->fetchItemChildren($item);
+        case 'tags':
+            return implode( ', ', array_map(
+                fn($val) => htmlspecialchars( $val['tag'] ?? '' ),
+                $field
+            ) );
 
-if( $child_items ) { 
-?>
-<?php foreach( $child_items as $child_item ) { ?>    
-<table>
-    <thead>
-        <th colspan="2"><?php echo $child_item->apiObject['title'] ?></th>
-    </thead>
-    <?php 
-    foreach( $child_item->apiObject as $field_name => $field ) :
+        case 'creators':
+            return implode( '<br />', array_map( function ( $val ) {
+                $name = $val['name'] ?? trim( ( $val['firstName'] ?? '' ) . ' ' . ( $val['lastName'] ?? '' ) );
+                return htmlspecialchars( un_camel( $val['creatorType'] ?? '' ) . ': ' . $name );
+            }, $field ) );
 
-        // Apply any field-specific formatting
-        switch( $field_name ) {
-            case 'tags':
-                $field_formatted = implode( ', ', array_map( fn($val) => $val["tag"], $field ) );
-                break;
-            default:
-                $field_formatted = $field;
-        }
-
-    ?>
-    <tr>
-        <th scope="row"><?php echo un_camel($field_name) ?></th>
-        <td><?php echo $field_formatted ?></td>
-    </tr>
-    <?php endforeach; ?>
-    <tr class="url">
-        <th scope="row">Link</th>
-        <?php if ( in_array( $child_item->apiObject['linkMode'], array( 'linked_file', 'linked_url' ) ) ) { ?>
-            <td><a href="<?php echo $child_item->apiObject['url'] ?>"><?php echo $child_item->apiObject['url'] ?></a></td>
-        <?php } else { ?>
-            <td><a href="attachment.php?itemkey=<?php echo $child_item->itemKey ?>&mime=<?php echo $child_item->apiObject['contentType'] ?>">Access the Attachment as stored on the WebDAV server</a></td>
-        <?php } ?>
-    </tr>
-</table>
-<hr />
-<?php
-
+        default:
+            if ( is_array( $field ) ) {
+                return implode( ', ', array_map( 'htmlspecialchars', array_filter( $field, 'is_scalar' ) ) );
+            }
+            return htmlspecialchars( (string) $field );
     }
-
 }
-
 ?>
+<div class="page single-column">
+    <div class="main">
+        <div class="breadcrumb"><a href="index.php">&larr; Back to Library</a></div>
+
+        <div class="panel">
+            <div class="panel-header"><h2>Item Details</h2></div>
+            <dl class="fields">
+                <?php foreach ( $item->apiObject as $field_name => $field ) : ?>
+                    <dt><?php echo htmlspecialchars( un_camel( $field_name ) ) ?></dt>
+                    <dd><?php echo render_field_value( $field_name, $field ) ?></dd>
+                <?php endforeach; ?>
+            </dl>
+        </div>
+
+        <div class="panel" style="margin-top: 20px;">
+            <div class="panel-header"><h2>Attachments</h2><span class="count"><?php echo (int) $item->numChildren ?></span></div>
+            <?php
+            $child_items = $zotero->fetchItemChildren( $item );
+            if ( ! $child_items ) :
+            ?>
+                <div class="empty-state">No attachments.</div>
+            <?php else : foreach ( $child_items as $child_item ) : ?>
+                <div class="attachment-card">
+                    <h3><?php echo htmlspecialchars( $child_item->apiObject['title'] ?? '(untitled)' ) ?></h3>
+                    <dl class="fields">
+                        <?php foreach ( $child_item->apiObject as $field_name => $field ) : ?>
+                            <dt><?php echo htmlspecialchars( un_camel( $field_name ) ) ?></dt>
+                            <dd><?php echo render_field_value( $field_name, $field ) ?></dd>
+                        <?php endforeach; ?>
+                    </dl>
+                    <div class="link">
+                        <?php if ( in_array( $child_item->apiObject['linkMode'] ?? '', array( 'linked_file', 'linked_url' ) ) ) : ?>
+                            <a href="<?php echo htmlspecialchars( $child_item->apiObject['url'] ?? '' ) ?>"><?php echo htmlspecialchars( $child_item->apiObject['url'] ?? '' ) ?></a>
+                        <?php else : ?>
+                            <a class="btn" href="attachment.php?itemkey=<?php echo urlencode( $child_item->itemKey ) ?>&mime=<?php echo urlencode( $child_item->apiObject['contentType'] ?? '' ) ?>">Open Attachment</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; endif; ?>
+        </div>
+    </div>
+</div>
 </body>
 </html>

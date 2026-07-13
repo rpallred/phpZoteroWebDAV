@@ -71,6 +71,10 @@ class Zotero_Library {
         if (isset($params['sort']))  $query['direction'] = $params['sort'];
         if (isset($params['limit'])) $query['limit']     = $params['limit'];
         if (isset($params['start'])) $query['start']     = $params['start'];
+        // Title/creator/year search. The API's "titleCreatorYear" qmode (the default
+        // when q is set) is the closest match to a title filter without excluding
+        // reasonable near-misses like a creator's name.
+        if (!empty($params['q'])) $query['q'] = $params['q'];
 
         $body = $this->request($this->buildUrl($path, $query));
 
