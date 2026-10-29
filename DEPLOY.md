@@ -8,13 +8,23 @@ This fork has been updated to run on PHP 8.1+ and to talk to Zotero's current
 Requirements
 ------------
 
-- PHP 8.1 or newer, with the `curl` and `zip` extensions enabled (both are
+- PHP 8.2 or newer (8.1 no longer gets security fixes), with the `curl` and `zip` extensions enabled (both are
   standard on virtually all hosts).
 - The folder this app lives in must be protected by your host's own HTTP
   Basic Auth (e.g. cPanel/Plesk "Password Protect Directories"). This app
   does **not** implement its own login — it relies entirely on that
   directory-level protection to keep your attachments private. Do not deploy
   this without it.
+- Keep PHP patched. As of October 2026, use at least PHP 8.2.35, 8.3.36,
+  8.4.27, or 8.5.12. Those releases fix the "PHP2Shell" remote code
+  execution flaws (CVE-2026-109618 / CVE-2026-109619). In cPanel, MultiPHP
+  Manager sets the PHP branch, but not the patch release, so confirm the
+  exact version with a throwaway `<?php echo PHP_VERSION;` file, then delete
+  it.
+- Set `session.upload_progress.enabled = Off` in the php.ini (e.g. cPanel
+  "MultiPHP INI Editor" -> Editor Mode). This app never uses PHP sessions,
+  so nothing breaks, and it closes off the session-upload-progress attack
+  path behind CVE-2026-115560, which had no patch at the time of writing.
 
 Step 1: Configure `settings.php`
 ---------------------------------
